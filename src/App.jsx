@@ -10,9 +10,10 @@ function App() {
   const [winner, setWinner] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(1); // 1 for Player 1, 2 for Player 2
   const [generateClicked, setGenerateClicked] = useState(false);
-  const [orgChartData, setOrgChartData] = useState(null);
+  const [orgChartData, setOrgChartData] = useState({ name: "Sample" });
   const [winnable1, setWinnable1] = useState(false);
   const [winnable2, setWinnable2] = useState(false);
+  const [totalCalculations, setTotalCalculations] = useState(0);
   // Function to generate a random uppercase letter
   const generateRandomLetter = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -39,31 +40,32 @@ function App() {
     }
   };
 
-  // Function to find the closest valid word for the given tiles
-  const findClosestWord = (tiles) => {
+  const findClosestWord = (tiles, isTest = false) => {
     let closestWord = "";
     let minDifference = Infinity;
     let solutionProcess = [];
+    let allData = [];
+    let totalCalculations = 0; // Counter for total calculations
+
     dictionary.forEach((dictWord) => {
-      const dictLetterCount = {}; // Object to store letter counts in the dictionary word
-      const tilesLetterCount = {}; // Object to store letter counts in the combined tiles
+      const dictLetterCount = {};
+      const tilesLetterCount = {};
       let difference = 0;
       let process = [];
-      // Count occurrences of each letter in the dictionary word
+      let currentCalculations = 0; // Counter for calculations within this loop
+
       dictWord.split("").forEach((letter) => {
         dictLetterCount[letter] = (dictLetterCount[letter] || 0) + 1;
       });
 
-      // Count occurrences of each letter in the combined tiles
       tiles.forEach((letter) => {
         tilesLetterCount[letter] = (tilesLetterCount[letter] || 0) + 1;
       });
 
-      // Compare the counts of each letter
       for (const letter in dictLetterCount) {
         const dictCount = dictLetterCount[letter] || 0;
         const tilesCount = tilesLetterCount[letter] || 0;
-        difference += Math.max(0, dictCount - tilesCount); // Add the difference in counts
+        difference += Math.max(0, dictCount - tilesCount);
         process.push({
           name: letter,
           attributes: {
@@ -71,37 +73,50 @@ function App() {
             tilesCount: tilesCount,
           },
         });
+
+        currentCalculations++; // Increment calculation counter
       }
 
-      // Update the closest word if the current word has a smaller difference
+      totalCalculations += currentCalculations; // Add current loop's calculations to total
+
+      let wordData = {
+        name: dictWord,
+        attributes: {
+          difference: difference,
+          calc: currentCalculations,
+        },
+      };
+
+      if (wordData.attributes.difference <= 3) {
+        allData.push(wordData);
+      }
+
       if (difference < minDifference) {
         closestWord = dictWord;
         minDifference = difference;
-        solutionProcess = process.slice(); // Copy the process
+        solutionProcess = process;
       }
     });
 
-    setOrgChartData({
-      name: "Solution Process",
-      children: [
-        {
-          name: closestWord,
-          attributes: {
-            difference: minDifference,
-          },
-          children: solutionProcess,
+    if (!isTest) {
+      let jsonData = {
+        name: closestWord,
+        attributes: {
+          minDifference: minDifference,
         },
-      ],
-    });
-
-    console.log("data is: ", orgChartData);
+        children: allData,
+      };
+      setOrgChartData(jsonData);
+      setTotalCalculations(totalCalculations);
+      console.log("data is: ", jsonData);
+    }
 
     return closestWord;
   };
 
   const check1 = () => {
     const combinedLetters = tiles1.concat(answers1);
-    const closestWord = findClosestWord(combinedLetters);
+    const closestWord = findClosestWord(combinedLetters, true);
     const missingLetters = closestWord
       .split("")
       .filter((letter) => !combinedLetters.includes(letter));
@@ -115,7 +130,7 @@ function App() {
 
   const check2 = () => {
     const combinedLetters = tiles2.concat(answers2);
-    const closestWord = findClosestWord(combinedLetters);
+    const closestWord = findClosestWord(combinedLetters, true);
     const missingLetters = closestWord
       .split("")
       .filter((letter) => !combinedLetters.includes(letter));
@@ -191,9 +206,12 @@ function App() {
     setAnswers2(Array(5).fill(""));
     setWinner(null);
     setCurrentPlayer(1);
+    setTotalCalculations(0);
+    setOrgChartData({ name: "Sample" });
   };
 
   useEffect(() => {
+    console.log("total are: ", totalCalculations);
     if (currentPlayer == 1) {
       const valid = check1();
       setWinnable1(valid);
@@ -212,10 +230,8 @@ function App() {
       >
         Reset Game
       </button>
-      {/* <div id="treeWrapper" style={{ width: "50em", height: "20em" }}>
-        <Tree className="text-white" data={orgChart} />
-      </div> */}
-      <div className="flex flex-col space-y-40 text-white">
+
+      <div className="flex flex-col space-y-20 text-white">
         <div className="flex flex-col space-y-4 items-start">
           <h1> Player 1</h1>
           <div className="flex flex-row space-x-4">
@@ -286,7 +302,7 @@ function App() {
                   solve();
                   setGenerateClicked(false);
                 }}
-                disabled={currentPlayer !== 1 || winner}
+                disabled={currentPlayer !== 1 || winner || !generateClicked}
               >
                 Move
               </button>
@@ -364,10 +380,28 @@ function App() {
                   solve();
                   setGenerateClicked(false);
                 }}
-                disabled={currentPlayer !== 2 || winner}
+                disabled={currentPlayer !== 2 || winner || !generateClicked}
               >
                 Move
               </button>
+            </div>
+          </div>
+        </div>
+        <div className="collapse bg-base-200">
+          <input type="checkbox" className="peer" />
+          <div className="collapse-title bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
+            Show Search Process
+          </div>
+          <div className="collapse-content bg-primary text-primary-content peer-checked:bg-secondary peer-checked:text-secondary-content">
+            <h2>Total Calculations are: {totalCalculations}</h2>
+            <div id="treeWrapper" style={{ height: "20em" }}>
+              <Tree
+                className="text-white"
+                data={orgChartData}
+                zoomable={true}
+                translate={{ x: 100, y: 100 }}
+                orientation="vertical"
+              />
             </div>
           </div>
         </div>
