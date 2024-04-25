@@ -14,7 +14,14 @@ function App() {
   const [winnable1, setWinnable1] = useState(false);
   const [winnable2, setWinnable2] = useState(false);
   const [totalCalculations, setTotalCalculations] = useState(0);
+  const [modalOpened, setModalOpened] = useState(false);
   // Function to generate a random uppercase letter
+
+  useEffect(() => {
+    // Open the modal when the component mounts
+    setModalOpened(true);
+  }, []);
+
   const generateRandomLetter = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     return alphabet.charAt(Math.floor(Math.random() * alphabet.length));
@@ -230,8 +237,61 @@ function App() {
       >
         Reset Game
       </button>
+      {modalOpened && (
+        <dialog id="my_modal_1" className="modal" open={true}>
+          <div className="modal-box text-justify">
+            <h3 className="font-bold text-lg text-center">
+              Welcome to Debmac&apos;s Word Duelist
+            </h3>
+            <p className="py-4">
+              Welcome to Debmac&apos;s Word Duelist, where you can engage in a
+              strategic word game experience driven by advanced AI algorithms.
+              Our AI opponent utilizes a sophisticated search process to analyze
+              the board and determine the optimal word to play.
+            </p>
+            <p className="py-4">
+              Our algorithm evaluates all possible combinations of letters on
+              the board and calculates the difference between them and the
+              dictionary words. It then selects the word with the minimum
+              difference, ensuring the most strategic move.
+            </p>
+            <p className="py-4">
+              Throughout the game, you&apos;ll observe the backend of our search
+              and logic for Debmac&apos;s Word Duelist visualized in real-time.
+              The tree structure displayed below demonstrates the search process
+              and calculations performed by our AI to make its decision.
+              You&apos;ll also see the total number of calculations, providing
+              insight into the complexity of its decision-making.
+            </p>
+            <div className="modal-action">
+              <form method="dialog">
+                {/* if there is a button in form, it will close the modal */}
+                <button className="btn">Okay</button>
+              </form>
+            </div>
+          </div>
+        </dialog>
+      )}
 
       <div className="flex flex-col space-y-20 text-white">
+        {!winner && (
+          <h1
+            className={`${
+              currentPlayer === 1 ? "text-pink-500" : "text-yellow-500"
+            }`}
+          >
+            Player&apos;s Turn: Player {currentPlayer}
+          </h1>
+        )}
+        {winner && (
+          <h1
+            className={`${
+              currentPlayer === 1 ? "text-pink-500" : "text-yellow-500"
+            }`}
+          >
+            Winner is : Player {winner}
+          </h1>
+        )}
         <div className="flex flex-col space-y-4 items-start">
           <h1> Player 1</h1>
           <div className="flex flex-row space-x-4">
@@ -302,7 +362,7 @@ function App() {
                   solve();
                   setGenerateClicked(false);
                 }}
-                disabled={currentPlayer !== 1 || winner || !generateClicked}
+                disabled={currentPlayer !== 1 || winner}
               >
                 Move
               </button>
@@ -380,7 +440,7 @@ function App() {
                   solve();
                   setGenerateClicked(false);
                 }}
-                disabled={currentPlayer !== 2 || winner || !generateClicked}
+                disabled={currentPlayer !== 2 || winner}
               >
                 Move
               </button>
