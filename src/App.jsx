@@ -231,8 +231,8 @@ function App() {
   return (
     <div>
       <button
-        className={`reset-button bg-white text-black ${
-          winner ? "bg-green-500" : ""
+        className={`reset-button  text-black ${
+          winner ? "bg-green-500" : "bg-white"
         }`}
         onClick={resetGame}
         style={{ position: "fixed", top: "20px", right: "20px" }}
@@ -310,12 +310,12 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button bg-white text-black ${
+                className={`button text-black ${
                   !winner &&
                   currentPlayer === 1 &&
                   tiles1.filter((tile) => tile === "").length > 2
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={() => {
                   generateRandomLetters1();
@@ -326,14 +326,14 @@ function App() {
                 Generate
               </button>
               <button
-                className={`button bg-white text-black ${
+                className={`button  text-black ${
                   !winner &&
                   currentPlayer === 1 &&
                   !generateClicked &&
                   !winnable1 &&
                   tiles1.filter((tile) => tile === "").length <= 2
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={handlePass}
                 disabled={currentPlayer !== 1 || generateClicked || winner}
@@ -354,11 +354,11 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button bg-white text-black ${
+                className={`button  text-black ${
                   (!winner && currentPlayer === 1 && generateClicked) ||
                   (currentPlayer === 1 && winnable1)
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={() => {
                   solve();
@@ -388,12 +388,12 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button bg-white text-black ${
+                className={`button  text-black ${
                   !winner &&
                   currentPlayer === 2 &&
                   tiles2.filter((tile) => tile === "").length > 2
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={() => {
                   generateRandomLetters2();
@@ -404,14 +404,14 @@ function App() {
                 Generate
               </button>
               <button
-                className={`button bg-white text-black ${
+                className={`button  text-black ${
                   !winner &&
                   currentPlayer === 2 &&
                   !generateClicked &&
                   !winnable2 &&
                   tiles2.filter((tile) => tile === "").length <= 2
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={handlePass}
                 disabled={currentPlayer !== 2 || generateClicked || winner}
@@ -432,11 +432,11 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button bg-white text-black ${
+                className={`button  text-black ${
                   (!winner && currentPlayer === 2 && generateClicked) ||
                   (currentPlayer === 2 && winnable2)
                     ? "bg-green-500"
-                    : ""
+                    : "bg-white"
                 }`}
                 onClick={() => {
                   solve();
