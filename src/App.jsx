@@ -231,7 +231,9 @@ function App() {
   return (
     <div>
       <button
-        className={`reset-button text-black ${winner ? "bg-green-500" : ""}`}
+        className={`reset-button bg-white text-black ${
+          winner ? "bg-green-500" : ""
+        }`}
         onClick={resetGame}
         style={{ position: "fixed", top: "20px", right: "20px" }}
       >
@@ -308,7 +310,7 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   !winner &&
                   currentPlayer === 1 &&
                   tiles1.filter((tile) => tile === "").length > 2
@@ -324,7 +326,7 @@ function App() {
                 Generate
               </button>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   !winner &&
                   currentPlayer === 1 &&
                   !generateClicked &&
@@ -352,7 +354,7 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   (!winner && currentPlayer === 1 && generateClicked) ||
                   (currentPlayer === 1 && winnable1)
                     ? "bg-green-500"
@@ -386,7 +388,7 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   !winner &&
                   currentPlayer === 2 &&
                   tiles2.filter((tile) => tile === "").length > 2
@@ -402,7 +404,7 @@ function App() {
                 Generate
               </button>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   !winner &&
                   currentPlayer === 2 &&
                   !generateClicked &&
@@ -430,7 +432,7 @@ function App() {
                 ))}
               </div>
               <button
-                className={`button text-black ${
+                className={`button bg-white text-black ${
                   (!winner && currentPlayer === 2 && generateClicked) ||
                   (currentPlayer === 2 && winnable2)
                     ? "bg-green-500"
