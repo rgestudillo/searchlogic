@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 import { dictionary } from "./Dictionary";
-
+import Tree from "react-d3-tree";
 function App() {
   const [tiles1, setTiles1] = useState(Array(5).fill(""));
   const [tiles2, setTiles2] = useState(Array(5).fill(""));
@@ -9,7 +9,10 @@ function App() {
   const [answers2, setAnswers2] = useState(Array(5).fill(""));
   const [winner, setWinner] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState(1); // 1 for Player 1, 2 for Player 2
-
+  const [generateClicked, setGenerateClicked] = useState(false);
+  const [orgChartData, setOrgChartData] = useState(null);
+  const [winnable1, setWinnable1] = useState(false);
+  const [winnable2, setWinnable2] = useState(false);
   // Function to generate a random uppercase letter
   const generateRandomLetter = () => {
     const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -40,12 +43,12 @@ function App() {
   const findClosestWord = (tiles) => {
     let closestWord = "";
     let minDifference = Infinity;
-
+    let solutionProcess = [];
     dictionary.forEach((dictWord) => {
       const dictLetterCount = {}; // Object to store letter counts in the dictionary word
       const tilesLetterCount = {}; // Object to store letter counts in the combined tiles
       let difference = 0;
-
+      let process = [];
       // Count occurrences of each letter in the dictionary word
       dictWord.split("").forEach((letter) => {
         dictLetterCount[letter] = (dictLetterCount[letter] || 0) + 1;
@@ -61,18 +64,68 @@ function App() {
         const dictCount = dictLetterCount[letter] || 0;
         const tilesCount = tilesLetterCount[letter] || 0;
         difference += Math.max(0, dictCount - tilesCount); // Add the difference in counts
+        process.push({
+          name: letter,
+          attributes: {
+            dictCount: dictCount,
+            tilesCount: tilesCount,
+          },
+        });
       }
 
       // Update the closest word if the current word has a smaller difference
       if (difference < minDifference) {
         closestWord = dictWord;
         minDifference = difference;
+        solutionProcess = process.slice(); // Copy the process
       }
     });
+
+    setOrgChartData({
+      name: "Solution Process",
+      children: [
+        {
+          name: closestWord,
+          attributes: {
+            difference: minDifference,
+          },
+          children: solutionProcess,
+        },
+      ],
+    });
+
+    console.log("data is: ", orgChartData);
 
     return closestWord;
   };
 
+  const check1 = () => {
+    const combinedLetters = tiles1.concat(answers1);
+    const closestWord = findClosestWord(combinedLetters);
+    const missingLetters = closestWord
+      .split("")
+      .filter((letter) => !combinedLetters.includes(letter));
+
+    if (missingLetters.length === 0) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const check2 = () => {
+    const combinedLetters = tiles2.concat(answers2);
+    const closestWord = findClosestWord(combinedLetters);
+    const missingLetters = closestWord
+      .split("")
+      .filter((letter) => !combinedLetters.includes(letter));
+
+    if (missingLetters.length === 0) {
+      return true;
+    }
+
+    return false;
+  };
   const solve = () => {
     const combinedLetters =
       currentPlayer === 1 ? tiles1.concat(answers1) : tiles2.concat(answers2);
@@ -140,15 +193,28 @@ function App() {
     setCurrentPlayer(1);
   };
 
+  useEffect(() => {
+    if (currentPlayer == 1) {
+      const valid = check1();
+      setWinnable1(valid);
+    } else if (currentPlayer == 2) {
+      const valid = check2();
+      setWinnable2(valid);
+    }
+  }, [currentPlayer]);
+
   return (
     <div>
       <button
-        className="reset-button text-black"
+        className={`reset-button text-black ${winner ? "bg-green-500" : ""}`}
         onClick={resetGame}
         style={{ position: "fixed", top: "20px", right: "20px" }}
       >
         Reset Game
       </button>
+      {/* <div id="treeWrapper" style={{ width: "50em", height: "20em" }}>
+        <Tree className="text-white" data={orgChart} />
+      </div> */}
       <div className="flex flex-col space-y-40 text-white">
         <div className="flex flex-col space-y-4 items-start">
           <h1> Player 1</h1>
@@ -166,16 +232,33 @@ function App() {
                 ))}
               </div>
               <button
-                className="button text-black"
-                onClick={generateRandomLetters1}
-                disabled={currentPlayer !== 1}
+                className={`button text-black ${
+                  !winner &&
+                  currentPlayer === 1 &&
+                  tiles1.filter((tile) => tile === "").length > 2
+                    ? "bg-green-500"
+                    : ""
+                }`}
+                onClick={() => {
+                  generateRandomLetters1();
+                  setGenerateClicked(true);
+                }}
+                disabled={currentPlayer !== 1 || winner}
               >
                 Generate
               </button>
               <button
-                className="button text-black"
+                className={`button text-black ${
+                  !winner &&
+                  currentPlayer === 1 &&
+                  !generateClicked &&
+                  !winnable1 &&
+                  tiles1.filter((tile) => tile === "").length <= 2
+                    ? "bg-green-500"
+                    : ""
+                }`}
                 onClick={handlePass}
-                disabled={currentPlayer !== 1}
+                disabled={currentPlayer !== 1 || generateClicked || winner}
               >
                 Pass
               </button>
@@ -193,9 +276,17 @@ function App() {
                 ))}
               </div>
               <button
-                className="button text-black"
-                onClick={solve}
-                disabled={currentPlayer !== 1}
+                className={`button text-black ${
+                  (!winner && currentPlayer === 1 && generateClicked) ||
+                  (currentPlayer === 1 && winnable1)
+                    ? "bg-green-500"
+                    : ""
+                }`}
+                onClick={() => {
+                  solve();
+                  setGenerateClicked(false);
+                }}
+                disabled={currentPlayer !== 1 || winner}
               >
                 Move
               </button>
@@ -219,16 +310,33 @@ function App() {
                 ))}
               </div>
               <button
-                className="button text-black"
-                onClick={generateRandomLetters2}
-                disabled={currentPlayer !== 2}
+                className={`button text-black ${
+                  !winner &&
+                  currentPlayer === 2 &&
+                  tiles2.filter((tile) => tile === "").length > 2
+                    ? "bg-green-500"
+                    : ""
+                }`}
+                onClick={() => {
+                  generateRandomLetters2();
+                  setGenerateClicked(true);
+                }}
+                disabled={currentPlayer !== 2 || winner}
               >
                 Generate
               </button>
               <button
-                className="button text-black"
+                className={`button text-black ${
+                  !winner &&
+                  currentPlayer === 2 &&
+                  !generateClicked &&
+                  !winnable2 &&
+                  tiles2.filter((tile) => tile === "").length <= 2
+                    ? "bg-green-500"
+                    : ""
+                }`}
                 onClick={handlePass}
-                disabled={currentPlayer !== 2}
+                disabled={currentPlayer !== 2 || generateClicked || winner}
               >
                 Pass
               </button>
@@ -246,9 +354,17 @@ function App() {
                 ))}
               </div>
               <button
-                className="button text-black"
-                onClick={solve}
-                disabled={currentPlayer !== 2}
+                className={`button text-black ${
+                  (!winner && currentPlayer === 2 && generateClicked) ||
+                  (currentPlayer === 2 && winnable2)
+                    ? "bg-green-500"
+                    : ""
+                }`}
+                onClick={() => {
+                  solve();
+                  setGenerateClicked(false);
+                }}
+                disabled={currentPlayer !== 2 || winner}
               >
                 Move
               </button>
